@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>테일즈런너 트레이닝 트래커</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="logo">
+                <h1>TR TRACKER</h1>
+            </div>
+
+            <div class="toggle-wrapper">
+                <div class="toggle-switch active" id="autoDetectToggle">
+                    <div class="toggle-knob"></div>
+                </div>
+                <span>AUTO GOAL 감지</span>
+            </div>
+
+            <div class="stats-bar">
+                <div class="stat-item">
+                    <div class="stat-label">Total Time</div>
+                    <div class="stat-value" id="sessionTimer">00:00:00</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">Completed</div>
+                    <div class="stat-value" id="completionStats">0 / 0</div>
+                </div>
+            </div>
+        </header>
+
+        <!-- 현재 포커스된 맵 표시 -->
+        <div class="focus-indicator" id="focusIndicator">
+            <div class="focus-label">현재 연습 중</div>
+            <div class="focus-map-name" id="focusMapName">-</div>
+            <div class="focus-hint">GOAL 감지 시 이 맵의 카운트가 올라갑니다</div>
+        </div>
+
+        <!-- Tabs with Timer -->
+        <nav class="tabs">
+            <button class="tab-btn active" data-tab="training">
+                트레이닝
+                <span class="tab-timer" id="trainingTimer"><i class="fa-solid fa-stopwatch"></i> 00:00</span>
+            </button>
+            <button class="tab-btn" data-tab="fairytale">
+                동화맵
+                <span class="tab-timer" id="fairytaleTimer"><i class="fa-solid fa-stopwatch"></i> 00:00</span>
+            </button>
+            <button class="tab-btn" data-tab="custom">
+                기술연습
+                <span class="tab-timer" id="customTimer"><i class="fa-solid fa-stopwatch"></i> 00:00</span>
+            </button>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="map-grid" id="mapGrid">
+            <div class="loading-placeholder">
+                <i class="fa-solid fa-spinner fa-spin"></i>
+                <span>로딩 중...</span>
+            </div>
+        </main>
+
+        <!-- 맵 추가 버튼 -->
+        <button class="add-map-btn" id="addMapBtn">
+            <i class="fa-solid fa-plus"></i>
+            <span>맵 추가</span>
+        </button>
+
+        <!-- 맵 추가 모달 -->
+        <div class="modal-overlay" id="addMapModal">
+            <div class="modal-content">
+                <h2>새 연습 항목 추가</h2>
+                <input type="text" id="newMapName" placeholder="맵 또는 기술 이름" maxlength="30">
+                <select id="newMapCategory">
+                    <option value="training">트레이닝</option>
+                    <option value="fairytale">동화맵</option>
+                    <option value="custom">기술연습</option>
+                </select>
+                <div class="modal-actions">
+                    <button class="btn btn-secondary" id="cancelAddMap">취소</button>
+                    <button class="btn btn-primary" id="confirmAddMap">추가</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div id="toastContainer"></div>
+
+    <script src="app.js"></script>
+</body>
+
+</html>
