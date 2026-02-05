@@ -200,8 +200,6 @@ app.add_middleware(
 
 # 정적 파일 서빙 (Frontend)
 frontend_path = Path(__file__).parent.parent / "frontend"
-if frontend_path.exists():
-    app.mount("/static", StaticFiles(directory=str(frontend_path)), name="static")
 
 
 # ========================================
@@ -215,6 +213,24 @@ async def root():
     if index_path.exists():
         return FileResponse(str(index_path))
     return {"message": "TalesRunner Practice Tracker API"}
+
+
+@app.get("/styles.css")
+async def get_styles():
+    """CSS 파일 반환"""
+    css_path = frontend_path / "styles.css"
+    if css_path.exists():
+        return FileResponse(str(css_path), media_type="text/css")
+    return {"error": "CSS not found"}, 404
+
+
+@app.get("/app.js")
+async def get_app_js():
+    """JS 파일 반환"""
+    js_path = frontend_path / "app.js"
+    if js_path.exists():
+        return FileResponse(str(js_path), media_type="application/javascript")
+    return {"error": "JS not found"}, 404
 
 
 @app.get("/api/state")
