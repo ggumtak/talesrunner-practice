@@ -24,8 +24,8 @@ if errorlevel 1 (
 
 echo [1/3] Python 확인 완료!
 
-:: backend 폴더로 이동
-cd /d "%~dp0backend"
+:: src/backend 폴더로 이동
+cd /d "%~dp0src\backend"
 
 :: 가상환경 확인/생성
 if not exist "venv" (
