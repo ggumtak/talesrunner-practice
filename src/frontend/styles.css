@@ -443,6 +443,17 @@ body {
     color: var(--color-danger);
 }
 
+.btn-decrement {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-secondary);
+    min-width: 38px;
+}
+
+.btn-decrement:hover:not(:disabled) {
+    background: rgba(251, 191, 36, 0.2);
+    color: var(--color-warning);
+}
+
 /* Toggle Switch */
 .toggle-wrapper {
     display: flex;

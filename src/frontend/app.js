@@ -356,11 +356,11 @@ function createMapCard(map) {
             </div>
 
             <div class="card-actions">
-                <button class="btn btn-focus" data-action="focus" title="이 맵 연습하기">
-                    <i class="fa-solid fa-crosshairs"></i>
+                <button class="btn btn-decrement" data-action="decrement" title="-1" ${map.current_count <= 0 ? 'disabled style="opacity: 0.3;"' : ''}>
+                    <i class="fa-solid fa-minus"></i>
                 </button>
-                <button class="btn btn-primary" data-action="increment" ${isCompleted ? 'disabled style="opacity: 0.5;"' : ''}>
-                    <i class="fa-solid ${isCompleted ? 'fa-trophy' : 'fa-check'}"></i> ${isCompleted ? '완료' : '+1'}
+                <button class="btn btn-primary" data-action="increment">
+                    <i class="fa-solid fa-plus"></i> +1
                 </button>
                 <button class="btn btn-secondary" data-action="reset" title="리셋">
                     <i class="fa-solid fa-rotate-left"></i>
@@ -374,11 +374,11 @@ function createMapCard(map) {
 }
 
 function attachCardEventListeners() {
-    // 포커스
-    document.querySelectorAll('[data-action="focus"]').forEach(btn => {
+    // -1
+    document.querySelectorAll('[data-action="decrement"]').forEach(btn => {
         btn.addEventListener('click', (e) => {
             e.stopPropagation();
-            focusMap(btn.closest('.map-card').dataset.mapId);
+            decrementMapCount(btn.closest('.map-card').dataset.mapId);
         });
     });
 
@@ -439,6 +439,17 @@ function incrementMapCount(mapId) {
         card.classList.add('pulse');
         setTimeout(() => card.classList.remove('pulse'), 500);
     }
+}
+
+function decrementMapCount(mapId) {
+    const map = AppState.maps[mapId];
+    if (!map || map.current_count <= 0) return;
+
+    AppState.maps[mapId] = { ...map, current_count: map.current_count - 1 };
+
+    saveToLocalStorage();
+    renderMaps();
+    updateStats();
 }
 
 function resetMapCount(mapId) {
