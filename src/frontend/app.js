@@ -108,19 +108,19 @@ function initOfflineMode() {
     // 기본 맵 데이터 (카운트 0으로 시작)
     const defaultMaps = {
         // 트레이닝 맵 (7개)
-        "training_hurdle_normal": { map_id: "training_hurdle_normal", map_name: "허들 노멀", category: "training", current_count: 0, target_count: 5 },
-        "training_block_easy": { map_id: "training_block_easy", map_name: "블럭 이지", category: "training", current_count: 0, target_count: 5 },
-        "training_block_hard": { map_id: "training_block_hard", map_name: "블럭 하드", category: "training", current_count: 0, target_count: 5 },
-        "training_updown": { map_id: "training_updown", map_name: "업다운", category: "training", current_count: 0, target_count: 5 },
-        "training_block_hell": { map_id: "training_block_hell", map_name: "블럭헬", category: "training", current_count: 0, target_count: 5 },
-        "training_block_mix1": { map_id: "training_block_mix1", map_name: "블럭믹스1", category: "training", current_count: 0, target_count: 5 },
-        "training_block_mix2": { map_id: "training_block_mix2", map_name: "블럭믹스2", category: "training", current_count: 0, target_count: 5 },
+        "training_hurdle_normal": { map_id: "training_hurdle_normal", map_name: "허들 노멀", category: "training", current_count: 0, target_count: 5, practice_time: 0 },
+        "training_block_easy": { map_id: "training_block_easy", map_name: "블럭 이지", category: "training", current_count: 0, target_count: 5, practice_time: 0 },
+        "training_block_hard": { map_id: "training_block_hard", map_name: "블럭 하드", category: "training", current_count: 0, target_count: 5, practice_time: 0 },
+        "training_updown": { map_id: "training_updown", map_name: "업다운", category: "training", current_count: 0, target_count: 5, practice_time: 0 },
+        "training_block_hell": { map_id: "training_block_hell", map_name: "블럭헬", category: "training", current_count: 0, target_count: 5, practice_time: 0 },
+        "training_block_mix1": { map_id: "training_block_mix1", map_name: "블럭믹스1", category: "training", current_count: 0, target_count: 5, practice_time: 0 },
+        "training_block_mix2": { map_id: "training_block_mix2", map_name: "블럭믹스2", category: "training", current_count: 0, target_count: 5, practice_time: 0 },
         // 동화 맵 (5개)
-        "fairytale_sun_moon": { map_id: "fairytale_sun_moon", map_name: "해와 달", category: "fairytale", current_count: 0, target_count: 5 },
-        "fairytale_heungbu1": { map_id: "fairytale_heungbu1", map_name: "흥부와 놀부1", category: "fairytale", current_count: 0, target_count: 5 },
-        "fairytale_heungbu2": { map_id: "fairytale_heungbu2", map_name: "흥부와 놀부2", category: "fairytale", current_count: 0, target_count: 5 },
-        "fairytale_momotaro": { map_id: "fairytale_momotaro", map_name: "복숭아동자", category: "fairytale", current_count: 0, target_count: 5 },
-        "fairytale_pinocchio": { map_id: "fairytale_pinocchio", map_name: "피노키오", category: "fairytale", current_count: 0, target_count: 5 },
+        "fairytale_sun_moon": { map_id: "fairytale_sun_moon", map_name: "해와 달", category: "fairytale", current_count: 0, target_count: 5, practice_time: 0 },
+        "fairytale_heungbu1": { map_id: "fairytale_heungbu1", map_name: "흥부와 놀부1", category: "fairytale", current_count: 0, target_count: 5, practice_time: 0 },
+        "fairytale_heungbu2": { map_id: "fairytale_heungbu2", map_name: "흥부와 놀부2", category: "fairytale", current_count: 0, target_count: 5, practice_time: 0 },
+        "fairytale_momotaro": { map_id: "fairytale_momotaro", map_name: "복숭아동자", category: "fairytale", current_count: 0, target_count: 5, practice_time: 0 },
+        "fairytale_pinocchio": { map_id: "fairytale_pinocchio", map_name: "피노키오", category: "fairytale", current_count: 0, target_count: 5, practice_time: 0 },
     };
 
     AppState.maps = defaultMaps;
@@ -297,6 +297,12 @@ function handleGoalDetected() {
 // 맵 렌더링
 // ========================================
 
+function formatTime(seconds) {
+    const m = String(Math.floor(seconds / 60)).padStart(2, '0');
+    const s = String(seconds % 60).padStart(2, '0');
+    return `${m}:${s}`;
+}
+
 function getFilteredMaps() {
     return Object.values(AppState.maps).filter(map => map.category === AppState.currentTab);
 }
@@ -352,6 +358,9 @@ function createMapCard(map) {
                 </div>
                 <div class="progress-bar">
                     <div class="progress-fill" style="width: ${Math.min(progress, 100)}%; ${isCompleted ? 'background: var(--color-success);' : ''}"></div>
+                </div>
+                <div class="practice-time">
+                    <i class="fa-solid fa-clock"></i> ${formatTime(map.practice_time || 0)}
                 </div>
             </div>
 
@@ -602,9 +611,18 @@ function startSessionTimer() {
         document.getElementById('sessionTimer').textContent = `${h}:${m}:${s}`;
     }, 1000);
 
-    // 탭별 타이머 (현재 탭만 증가)
+    // 탭별 타이머 (현재 탭만 증가) + 포커스된 맵 시간 증가
     AppState.tabTimerInterval = setInterval(() => {
         AppState.tabTimers[AppState.currentTab]++;
+
+        // 포커스된 맵 시간 증가
+        if (AppState.focusedMapId && AppState.maps[AppState.focusedMapId]) {
+            AppState.maps[AppState.focusedMapId] = {
+                ...AppState.maps[AppState.focusedMapId],
+                practice_time: (AppState.maps[AppState.focusedMapId].practice_time || 0) + 1
+            };
+        }
+
         updateTabTimers();
 
         // 10초마다 저장

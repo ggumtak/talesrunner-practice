@@ -373,6 +373,20 @@ body {
     box-shadow: 0 0 10px var(--color-fairytale);
 }
 
+.practice-time {
+    margin-top: 0.5rem;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.practice-time i {
+    font-size: 0.7rem;
+    opacity: 0.7;
+}
+
 /* Card Actions */
 .card-actions {
     display: flex;
