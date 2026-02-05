@@ -23,6 +23,21 @@ const AppState = {
         custom: 0
     },
 
+    // 설정
+    settings: {
+        defaultTargetCount: 5,
+        dailyReset: false
+    },
+
+    // 오늘 통계
+    todayStats: {
+        date: null,
+        completed: 0
+    },
+
+    // 목표 횟수 수정 대상
+    editingMapId: null,
+
     ws: null,
     timerInterval: null,
     tabTimerInterval: null
@@ -129,7 +144,9 @@ function saveToLocalStorage() {
     const data = {
         maps: AppState.maps,
         focusedMapId: AppState.focusedMapId,
-        tabTimers: AppState.tabTimers
+        tabTimers: AppState.tabTimers,
+        settings: AppState.settings,
+        todayStats: AppState.todayStats
     };
     localStorage.setItem('tr_tracker_state', JSON.stringify(data));
 }
@@ -145,6 +162,7 @@ function loadFromLocalStorage() {
                 Object.keys(data.maps).forEach(mapId => {
                     if (AppState.maps[mapId]) {
                         AppState.maps[mapId].current_count = data.maps[mapId].current_count || 0;
+                        AppState.maps[mapId].target_count = data.maps[mapId].target_count || 5;
                     } else {
                         // 커스텀 맵 복원
                         AppState.maps[mapId] = data.maps[mapId];
@@ -154,9 +172,41 @@ function loadFromLocalStorage() {
 
             AppState.focusedMapId = data.focusedMapId;
             AppState.tabTimers = data.tabTimers || { training: 0, fairytale: 0, custom: 0 };
+            AppState.settings = data.settings || { defaultTargetCount: 5, dailyReset: false };
+            AppState.todayStats = data.todayStats || { date: null, completed: 0 };
         }
+
+        // 하루 자동 초기화 체크
+        checkDailyReset();
+
     } catch (e) {
         console.log('LocalStorage load failed');
+    }
+}
+
+function checkDailyReset() {
+    const today = new Date().toDateString();
+
+    // 오늘 날짜가 저장된 날짜와 다르면
+    if (AppState.todayStats.date !== today) {
+        // 하루 자동 초기화 설정이 켜져 있으면 진행도 리셋
+        if (AppState.settings.dailyReset && AppState.todayStats.date !== null) {
+            Object.keys(AppState.maps).forEach(mapId => {
+                AppState.maps[mapId] = {
+                    ...AppState.maps[mapId],
+                    current_count: 0
+                };
+            });
+            AppState.tabTimers = { training: 0, fairytale: 0, custom: 0 };
+            showToast('새로운 하루! 진행도가 초기화되었습니다', 'info');
+        }
+
+        // 날짜 업데이트 및 오늘 완주 수 초기화
+        AppState.todayStats = {
+            date: today,
+            completed: 0
+        };
+        saveToLocalStorage();
     }
 }
 
@@ -372,9 +422,16 @@ function incrementMapCount(mapId) {
 
     AppState.maps[mapId] = { ...map, current_count: map.current_count + 1 };
 
+    // 오늘 완주 수 증가
+    AppState.todayStats = {
+        ...AppState.todayStats,
+        completed: AppState.todayStats.completed + 1
+    };
+
     saveToLocalStorage();
     renderMaps();
     updateStats();
+    updateTodayStats();
 
     // 시각적 피드백
     const card = document.querySelector(`[data-map-id="${mapId}"]`);
@@ -591,6 +648,153 @@ function setupAutoDetectToggle() {
 }
 
 // ========================================
+// 설정 모달
+// ========================================
+
+function setupSettingsModal() {
+    const settingsBtn = document.getElementById('settingsBtn');
+    const modal = document.getElementById('settingsModal');
+    const dailyResetToggle = document.getElementById('dailyResetToggle');
+    const defaultTargetInput = document.getElementById('defaultTargetCount');
+    const closeBtn = document.getElementById('closeSettings');
+    const saveBtn = document.getElementById('saveSettings');
+
+    // 설정 열기
+    settingsBtn.addEventListener('click', () => {
+        modal.classList.add('show');
+        // 현재 설정값 표시
+        defaultTargetInput.value = AppState.settings.defaultTargetCount;
+        dailyResetToggle.classList.toggle('active', AppState.settings.dailyReset);
+        document.getElementById('todayCompletedValue').textContent = `${AppState.todayStats.completed}판`;
+    });
+
+    // 하루 자동 초기화 토글
+    dailyResetToggle.addEventListener('click', () => {
+        dailyResetToggle.classList.toggle('active');
+    });
+
+    // 닫기
+    closeBtn.addEventListener('click', () => modal.classList.remove('show'));
+    modal.addEventListener('click', (e) => { if (e.target === modal) modal.classList.remove('show'); });
+
+    // 저장
+    saveBtn.addEventListener('click', () => {
+        AppState.settings = {
+            ...AppState.settings,
+            defaultTargetCount: parseInt(defaultTargetInput.value) || 5,
+            dailyReset: dailyResetToggle.classList.contains('active')
+        };
+        saveToLocalStorage();
+        modal.classList.remove('show');
+        showToast('설정 저장됨', 'success');
+    });
+}
+
+// ========================================
+// 전체 초기화
+// ========================================
+
+function setupResetAllBtn() {
+    const resetBtn = document.getElementById('resetAllBtn');
+
+    resetBtn.addEventListener('click', () => {
+        if (!confirm('모든 맵의 진행도를 초기화할까요?')) return;
+
+        Object.keys(AppState.maps).forEach(mapId => {
+            AppState.maps[mapId] = {
+                ...AppState.maps[mapId],
+                current_count: 0
+            };
+        });
+
+        AppState.tabTimers = { training: 0, fairytale: 0, custom: 0 };
+
+        saveToLocalStorage();
+        renderMaps();
+        updateStats();
+        updateTabTimers();
+        showToast('전체 초기화 완료', 'info');
+    });
+}
+
+// ========================================
+// 목표 횟수 수정 모달
+// ========================================
+
+function setupEditTargetModal() {
+    const modal = document.getElementById('editTargetModal');
+    const input = document.getElementById('editTargetValue');
+    const mapNameEl = document.getElementById('editTargetMapName');
+    const cancelBtn = document.getElementById('cancelEditTarget');
+    const confirmBtn = document.getElementById('confirmEditTarget');
+
+    // 진행도 클릭 시 모달 열기 (이벤트 위임)
+    document.getElementById('mapGrid').addEventListener('click', (e) => {
+        const progressHeader = e.target.closest('.progress-header');
+        if (!progressHeader) return;
+
+        e.stopPropagation();
+        const card = progressHeader.closest('.map-card');
+        const mapId = card.dataset.mapId;
+        const map = AppState.maps[mapId];
+
+        if (!map) return;
+
+        AppState.editingMapId = mapId;
+        mapNameEl.textContent = map.map_name;
+        input.value = map.target_count;
+        modal.classList.add('show');
+        input.focus();
+        input.select();
+    });
+
+    cancelBtn.addEventListener('click', () => {
+        modal.classList.remove('show');
+        AppState.editingMapId = null;
+    });
+
+    confirmBtn.addEventListener('click', saveEditedTarget);
+    input.addEventListener('keypress', (e) => { if (e.key === 'Enter') saveEditedTarget(); });
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            modal.classList.remove('show');
+            AppState.editingMapId = null;
+        }
+    });
+}
+
+function saveEditedTarget() {
+    if (!AppState.editingMapId) return;
+
+    const input = document.getElementById('editTargetValue');
+    const newTarget = parseInt(input.value) || 5;
+
+    AppState.maps[AppState.editingMapId] = {
+        ...AppState.maps[AppState.editingMapId],
+        target_count: newTarget
+    };
+
+    saveToLocalStorage();
+    renderMaps();
+    updateStats();
+
+    document.getElementById('editTargetModal').classList.remove('show');
+    showToast('목표 횟수 변경됨', 'success');
+    AppState.editingMapId = null;
+}
+
+// ========================================
+// 오늘 통계 업데이트
+// ========================================
+
+function updateTodayStats() {
+    const el = document.getElementById('todayStats');
+    if (el) {
+        el.textContent = `${AppState.todayStats.completed}판`;
+    }
+}
+
+// ========================================
 // 초기화
 // ========================================
 
@@ -600,9 +804,14 @@ function initApp() {
     setupTabs();
     setupAddMapModal();
     setupAutoDetectToggle();
+    setupSettingsModal();
+    setupResetAllBtn();
+    setupEditTargetModal();
     startSessionTimer();
     updateTabTimers();
     updateFocusIndicator();
+    updateTodayStats();
 }
 
 document.addEventListener('DOMContentLoaded', initApp);
+

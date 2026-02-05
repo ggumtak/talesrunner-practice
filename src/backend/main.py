@@ -335,15 +335,73 @@ async def websocket_endpoint(websocket: WebSocket):
 
 
 # ========================================
+# 시스템 트레이 아이콘
+# ========================================
+
+def create_tray_icon():
+    """시스템 트레이 아이콘 생성"""
+    try:
+        import pystray
+        from PIL import Image, ImageDraw
+        import threading
+        
+        # 간단한 아이콘 이미지 생성 (16x16 녹색 원)
+        def create_icon_image():
+            image = Image.new('RGB', (64, 64), color='#0f172a')
+            draw = ImageDraw.Draw(image)
+            # 그라데이션 효과를 낸 원
+            draw.ellipse([8, 8, 56, 56], fill='#22d3ee', outline='#f472b6', width=3)
+            draw.text((22, 18), "TR", fill='white')
+            return image
+        
+        def on_quit(icon, item):
+            """트레이에서 종료 클릭 시"""
+            icon.stop()
+            os._exit(0)
+        
+        def on_open_browser(icon, item):
+            """브라우저 열기"""
+            import webbrowser
+            webbrowser.open('http://localhost:8000')
+        
+        # 메뉴 생성
+        menu = pystray.Menu(
+            pystray.MenuItem("브라우저 열기", on_open_browser),
+            pystray.MenuItem("종료", on_quit)
+        )
+        
+        # 아이콘 생성
+        icon = pystray.Icon(
+            "TR Tracker",
+            create_icon_image(),
+            "TR Tracker - GOAL 감지 중",
+            menu
+        )
+        
+        # 별도 스레드에서 실행
+        threading.Thread(target=icon.run, daemon=True).start()
+        print("[INFO] System tray icon created")
+        
+    except Exception as e:
+        print(f"[WARNING] Could not create tray icon: {e}")
+
+
+# ========================================
 # 엔트리포인트
 # ========================================
 
 if __name__ == "__main__":
     import uvicorn
+    
+    # 시스템 트레이 아이콘 생성
+    create_tray_icon()
+    
+    # 서버 실행
     uvicorn.run(
         "main:app",
         host="127.0.0.1",
         port=8000,
-        reload=True,
+        reload=False,  # 트레이 아이콘과 함께 사용 시 reload 비활성화
         log_level="info"
     )
+

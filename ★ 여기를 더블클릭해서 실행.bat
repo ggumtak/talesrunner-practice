@@ -1,6 +1,6 @@
 @echo off
 chcp 65001 > nul
-title 테일즈런너 연습 트래커
+title TR Tracker
 
 echo.
 echo ========================================
@@ -22,30 +22,39 @@ if errorlevel 1 (
     exit /b 1
 )
 
-echo [1/3] Python 확인 완료!
+echo [1/4] Python 확인 완료!
 
 :: src/backend 폴더로 이동
 cd /d "%~dp0src\backend"
 
 :: 가상환경 확인/생성
 if not exist "venv" (
-    echo [2/3] 첫 실행: 환경 설정 중... (1-2분 소요)
+    echo [2/4] 첫 실행: 환경 설정 중... (1-2분 소요)
     python -m venv venv
     call venv\Scripts\activate.bat
     pip install -r requirements.txt --quiet
+    pip install pystray pillow --quiet
 ) else (
-    echo [2/3] 환경 로딩 중...
+    echo [2/4] 환경 로딩 중...
     call venv\Scripts\activate.bat
 )
 
-echo [3/3] 서버 시작 중...
+echo [3/4] 브라우저 열기...
+
+:: 3초 후 브라우저 자동 열기 (백그라운드)
+start "" cmd /c "timeout /t 3 /nobreak >nul && start http://localhost:8000"
+
+echo [4/4] 서버 시작 중...
 echo.
 echo ========================================
-echo   준비 완료!
-echo   브라우저에서 http://localhost:8000 열기
-echo   종료하려면 이 창을 닫으세요
+echo   준비 완료! (이 창은 최소화됩니다)
+echo   종료하려면 트레이 아이콘 우클릭 - 종료
 echo ========================================
 echo.
+
+:: 2초 후 이 창 최소화
+timeout /t 2 /nobreak >nul
+powershell -window minimized -command ""
 
 :: 서버 실행
 python main.py

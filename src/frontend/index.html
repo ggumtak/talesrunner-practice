@@ -33,6 +33,19 @@
                     <div class="stat-label">Completed</div>
                     <div class="stat-value" id="completionStats">0 / 0</div>
                 </div>
+                <div class="stat-item">
+                    <div class="stat-label">Today</div>
+                    <div class="stat-value" id="todayStats">0판</div>
+                </div>
+            </div>
+
+            <div class="header-actions">
+                <button class="btn btn-icon" id="resetAllBtn" title="전체 초기화">
+                    <i class="fa-solid fa-rotate-left"></i>
+                </button>
+                <button class="btn btn-icon" id="settingsBtn" title="설정">
+                    <i class="fa-solid fa-gear"></i>
+                </button>
             </div>
         </header>
 
@@ -86,6 +99,54 @@
                 <div class="modal-actions">
                     <button class="btn btn-secondary" id="cancelAddMap">취소</button>
                     <button class="btn btn-primary" id="confirmAddMap">추가</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 설정 모달 -->
+        <div class="modal-overlay" id="settingsModal">
+            <div class="modal-content">
+                <h2><i class="fa-solid fa-gear"></i> 설정</h2>
+
+                <div class="settings-group">
+                    <label class="settings-label">기본 목표 횟수</label>
+                    <div class="settings-row">
+                        <input type="number" id="defaultTargetCount" min="1" max="99" value="5">
+                        <span>판</span>
+                    </div>
+                </div>
+
+                <div class="settings-group">
+                    <label class="settings-label">하루 자동 초기화</label>
+                    <div class="settings-row">
+                        <div class="toggle-switch" id="dailyResetToggle">
+                            <div class="toggle-knob"></div>
+                        </div>
+                        <span>매일 자정에 진행도 초기화</span>
+                    </div>
+                </div>
+
+                <div class="settings-group">
+                    <label class="settings-label">오늘 완주 기록</label>
+                    <div class="settings-value" id="todayCompletedValue">0판</div>
+                </div>
+
+                <div class="modal-actions">
+                    <button class="btn btn-secondary" id="closeSettings">닫기</button>
+                    <button class="btn btn-primary" id="saveSettings">저장</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 목표 횟수 수정 모달 -->
+        <div class="modal-overlay" id="editTargetModal">
+            <div class="modal-content">
+                <h2>목표 횟수 수정</h2>
+                <p id="editTargetMapName" style="color: var(--text-secondary); margin-bottom: 1rem;"></p>
+                <input type="number" id="editTargetValue" min="1" max="99" value="5">
+                <div class="modal-actions">
+                    <button class="btn btn-secondary" id="cancelEditTarget">취소</button>
+                    <button class="btn btn-primary" id="confirmEditTarget">저장</button>
                 </div>
             </div>
         </div>
