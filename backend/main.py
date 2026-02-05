@@ -125,7 +125,9 @@ async def broadcast_goal_detected(map_id: str = None) -> None:
 
 async def goal_detection_loop() -> None:
     """0.5초마다 화면을 캡처하여 GOAL 감지"""
-    detector = get_detector()
+    # 템플릿 경로 설정
+    template_path = Path(__file__).parent / "assets" / "goal_template.png"
+    detector = get_detector(str(template_path) if template_path.exists() else None)
     
     while True:
         try:
